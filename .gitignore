@@ -22,3 +22,9 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+!storage/app/public/
+!storage/app/public/gundams/
+!storage/app/public/gundams/*.jpg
+!storage/app/public/grunts/
+!storage/app/public/grunts/*.jpg
