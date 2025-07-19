@@ -23,6 +23,7 @@
 
 <div class="container mb-4">
     <form action="{{ route('search') }}" method="GET" class="row g-2 align-items-end">
+        @csrf
         <div class="col-md-3">
             <input type="text" name="query" class="form-control" placeholder="Search..." value="{{ request('query') }}">
         </div>
