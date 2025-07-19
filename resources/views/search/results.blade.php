@@ -5,7 +5,7 @@
     <div class="row row-cols-3 g-4">
         @foreach($items as $item)
             <div class="col">
-                <a href="{{ route('details', $item->id) }}" class="text-decoration-none">
+                <a href="{{ route('details', ['type' => $item->type, 'id' => $item->id]) }}">
                     <div class="card h-100 shadow-sm card-hover" style="height: 350px;">
                         @if (!empty($item->image))
                             <img src="{{ \Illuminate\Support\Facades\Storage::url($item->image) }}" class="card-img-top" alt="{{ $item->name }}" style="object-fit: cover; height: 200px; width: 100%;">

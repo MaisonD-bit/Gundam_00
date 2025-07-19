@@ -24,15 +24,32 @@ class SearchController extends Controller
         $gruntsQuery = GruntSuit::with('organization', 'pilots');
 
         if ($query) {
-            $gundamsQuery->where('name', $query);
-            $gruntsQuery->where('name', $query);
+            $gundamsQuery->where(function ($q) use ($query) {
+                $q->where('name', 'like', '%' . $query . '%')
+                ->orWhereHas('pilots', function ($sub) use ($query) {
+                    $sub->where('name', 'like', '%' . $query . '%');
+                })
+                ->orWhereHas('organization', function ($sub) use ($query) {
+                    $sub->where('name', 'like', '%' . $query . '%');
+                });
+            });
+
+            $gruntsQuery->where(function ($q) use ($query) {
+                $q->where('name', 'like', '%' . $query . '%')
+                ->orWhereHas('pilots', function ($sub) use ($query) {
+                    $sub->where('name', 'like', '%' . $query . '%');
+                })
+                ->orWhereHas('organization', function ($sub) use ($query) {
+                    $sub->where('name', 'like', '%' . $query . '%');
+                });
+            });
         }
 
         if ($pilotId) {
-            $gundamsQuery->whereHas('pilots', function($q) use ($pilotId) {
+            $gundamsQuery->whereHas('pilots', function ($q) use ($pilotId) {
                 $q->where('pilot_id', $pilotId);
             });
-            $gruntsQuery->whereHas('pilots', function($q) use ($pilotId) {
+            $gruntsQuery->whereHas('pilots', function ($q) use ($pilotId) {
                 $q->where('pilot_id', $pilotId);
             });
         }
@@ -52,10 +69,21 @@ class SearchController extends Controller
             $gruntsQuery->where('organization_id', $organizationId);
         }
 
-        $gundams = $gundamsQuery->get();
-        $grunts = $gruntsQuery->get();
+        $gundams = $gundamsQuery->get()->keyBy(function ($g) {
+            return 'gundam-' . $g->id;
+        })->map(function ($g) {
+            $g->type = 'gundam';
+            return $g;
+        });
 
-        $merged = $gundams->concat($grunts);
+        $grunts = $gruntsQuery->get()->keyBy(function ($g) {
+            return 'grunt-' . $g->id;
+        })->map(function ($g) {
+            $g->type = 'grunt';
+            return $g;
+        });
+
+        $merged = $gundams->merge($grunts)->values();   
 
         $page = $request->input('page', 1);
         $perPage = 15;
@@ -76,16 +104,19 @@ class SearchController extends Controller
             'pilots' => Pilot::all(),
             'gundamsFilter' => Gundam::all(),
             'gruntsFilter' => GruntSuit::all(),
-            'organizations' => Organization::all(), 
+            'organizations' => Organization::all(),
         ]);
     }
 
-    public function details($id)
+    public function details($type, $id)
     {
-        $gundam = Gundam::with('organization', 'pilots')->find($id);
-        $gruntSuit = GruntSuit::with('organization', 'pilots')->find($id);
-
-        $item = $gundam ?? $gruntSuit;
+        if ($type === 'gundam') {
+            $item = Gundam::with('organization', 'pilots')->find($id);
+        } elseif ($type === 'grunt') {
+            $item = GruntSuit::with('organization', 'pilots')->find($id);
+        } else {
+            abort(404, 'Invalid item type');
+        }
 
         if (!$item) {
             abort(404, 'Item not found');
@@ -95,9 +126,8 @@ class SearchController extends Controller
             'item' => $item,
             'pilots' => Pilot::all(),
             'gundamsFilter' => Gundam::all(),
-            'gruntsFilter' => GruntSuit::all(), 
+            'gruntsFilter' => GruntSuit::all(),
             'organizations' => Organization::all(),
         ]);
     }
-
 }
