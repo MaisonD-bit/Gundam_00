@@ -1,8 +1,11 @@
 <div class="col-md-4 mb-4">
-    <a href="{{ route('details', $item->id) }}" class="text-decoration-none">
-        <div class="card h-100 shadow-sm">
+    <a href="{{ route('details', ['type' => $item->type, 'id' => $item->id]) }}" class="text-decoration-none" style="color: inherit;">
+        <div class="card h-100 shadow-sm card-hover">
             @if (!empty($item->image))
-                <img src="{{ \Illuminate\Support\Facades\Storage::url($item->image) }}" class="card-img-top" alt="{{ $item->name }}" style="auto-fit: cover; height: 200px; width: 100%;">
+                <img src="{{ \Illuminate\Support\Facades\Storage::url($item->image) }}" 
+                     class="card-img-top" 
+                     alt="{{ $item->name }}" 
+                     style="object-fit: cover; object-position: top; height: 200px; width: 100%;">
             @else
                 <div class="card-img-top d-flex align-items-center justify-content-center bg-secondary text-white" style="height: 200px;">
                     No Image
